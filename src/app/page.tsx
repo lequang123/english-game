@@ -11,17 +11,24 @@ import RightToolbar from "@/components/game/RightToolbar";
 import BottomBar from "@/components/game/BottomBar";
 import GameOverScreen from "@/components/game/GameOverScreen";
 import TopBanner from "@/components/layout/TopBanner";
-import Sidebar from "@/components/layout/Sidebar";
+import Sidebar, { NavKey } from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import GameHub from "@/components/hub/GameHub";
+import ShadowingSetup from "@/components/shadowing/ShadowingSetup";
+import ShadowingScreen from "@/components/shadowing/ShadowingScreen";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { SentenceItem } from "@/lib/shadowing";
 import { FallingWord } from "@/hooks/useGameEngine";
 
-type AppState = "hub" | "deck-selection" | "playing" | "gameover";
+type AppState = "hub" | "deck-selection" | "playing" | "gameover" | "shadowing-setup" | "shadowing";
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("hub");
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [lasers, setLasers] = useState<LaserShot[]>([]);
+  const [shadowItems, setShadowItems] = useState<SentenceItem[]>([]);
+  const [shadowVideoId, setShadowVideoId] = useState<string | undefined>();
+  const rec = useSpeechRecognition();
   const [firing, setFiring] = useState(false);
   const firingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -71,7 +78,6 @@ export default function Home() {
         }
       },
       onDestroy: (word: FallingWord) => {
-        // No boom sound - pure clear English pronunciation
         if (word) {
           speakWord(word.word);
         }
@@ -150,12 +156,11 @@ export default function Home() {
     setAppState("deck-selection");
   }, []);
 
-  // Keyboard handler
+  // Keyboard handler for game
   useEffect(() => {
     if (appState !== "playing") return;
 
     const handler = (e: KeyboardEvent) => {
-      // Ignore modifier keys and special keys
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key.length !== 1) return;
 
@@ -207,20 +212,55 @@ export default function Home() {
     );
   }
 
-  // App Layout for Hub and Deck Selection
+  // App Layout for Hub, Deck Selection and Shadowing
   return (
     <div className="app-layout">
       <TopBanner />
       <div className="app-main-wrapper">
-        <Sidebar />
+        <Sidebar
+          activeKey={appState.startsWith("shadowing") ? "shadowing" : "games"}
+          onNavigate={(key: NavKey) => {
+            rec.abort();
+            setAppState(key === "shadowing" ? "shadowing-setup" : "hub");
+          }}
+        />
         <div className="app-content-area">
           <Header />
           <main className="app-main-content">
             {appState === "hub" && <GameHub onPlayGame={handlePlayGame} />}
+            {appState === "shadowing-setup" && (
+              <ShadowingSetup
+                supported={rec.supported}
+                onStart={(items, videoId) => {
+                  setShadowItems(items);
+                  setShadowVideoId(videoId);
+                  setAppState("shadowing");
+                }}
+              />
+            )}
+            {appState === "shadowing" && (
+              <ShadowingScreen
+                items={shadowItems}
+                videoId={shadowVideoId}
+                supported={rec.supported}
+                listening={rec.listening}
+                transcript={rec.transcript}
+                error={rec.error}
+                onStartRec={rec.start}
+                onStopRec={rec.stop}
+                onResetRec={rec.reset}
+                onAbortRec={rec.abort}
+                onSpeak={speakWord}
+                onBack={() => {
+                  rec.abort();
+                  setAppState("shadowing-setup");
+                }}
+              />
+            )}
             {appState === "deck-selection" && (
               <div className="deck-selection-wrapper">
-                <button 
-                  className="back-to-hub-btn" 
+                <button
+                  className="back-to-hub-btn"
                   onClick={() => setAppState("hub")}
                 >
                   &larr; Quay lại các game
@@ -234,4 +274,3 @@ export default function Home() {
     </div>
   );
 }
-
