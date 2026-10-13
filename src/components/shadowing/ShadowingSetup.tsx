@@ -10,6 +10,12 @@ const SAMPLE = `If things don't work out, you can always come home. | Nếu mọ
 And come back a failure? | Và trở về trong thất bại sao
 What a cool witch. | Một phù thủy ngầu thật`;
 
+const SUGGESTED_VIDEOS = [
+  { label: "🎵 Never Gonna Give You Up", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+  { label: "🗣️ How to Improve Spelling (B1)", url: "https://www.youtube.com/watch?v=R9K_sBqYj60" },
+  { label: "💡 5 Tips to Speak English", url: "https://www.youtube.com/watch?v=sQC_5g_jJk0" },
+];
+
 interface Props {
   supported: boolean;
   onStart: (items: SentenceItem[], videoId?: string) => void;
@@ -91,6 +97,20 @@ export default function ShadowingSetup({ supported, onStart }: Props) {
           <p className="shadow-hint">
             Video cần có phụ đề tiếng Anh (do người đăng hoặc tự động). Phụ đề được tách thành từng câu theo thời gian của clip.
           </p>
+          <div className="shadow-suggestions-row">
+            <span className="shadow-suggestions-title">Video gợi ý:</span>
+            {SUGGESTED_VIDEOS.map((item, i) => (
+              <button
+                key={i}
+                type="button"
+                className="shadow-suggestion-pill"
+                onClick={() => setUrl(item.url)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
           {fetchError && (
             <div className="shadow-alert" role="alert">
               {fetchError}

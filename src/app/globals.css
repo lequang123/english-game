@@ -2106,6 +2106,39 @@ body {
   line-height: 1.5;
 }
 
+.shadow-suggestions-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+
+.shadow-suggestions-title {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.shadow-suggestion-pill {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shadow-suggestion-pill:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
 .shadow-note {
   font-size: 0.82rem;
   color: #94a3b8;
